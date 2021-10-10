@@ -1,7 +1,7 @@
 # CMPEN431_Project1
 Design Space Exploration
-Prof. Mahmut Kandemir
-Penn State University
+
+
 Solutions to project assignments are to be developed within your group, without collaboration with other groups. However, as the projects in this class require the use of
 software tools and frameworks that students may have uneven prior familiarity with, discussion and assistance among students in gaining expertise with these software tools constitutes acceptable behavior. Note that this assistance and discussion cannot include
 the sharing of access to any code produced in solution to the project assignments. In
