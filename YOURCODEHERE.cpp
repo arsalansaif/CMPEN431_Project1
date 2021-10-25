@@ -20,7 +20,8 @@ using namespace std;
 /*
  * Enter your PSU IDs here to select the appropriate scanning order.
  */
-#define PSU_ID_SUM (912345679+911111111)
+#define PSU_ID_SUM (994898078+919244886)
+
 
 /*
  * Some global variables to track heuristic progress.
@@ -44,16 +45,90 @@ std::string generateCacheLatencyParams(string halfBackedConfig) {
 	string latencySettings;
 
 	//
-	//YOUR CODE BEGINS HERE
-	//
+	std::stringstream latency;
+	int dl1Size = getdl1cachesize(halfBackedConfig);
+	int il1Size = getil1cachesize(halfBackedConfig);
+	int ul2Size = getl2cachesize(halfBackedConfig);
 
+	int dl1Association = extractConfigPararm( configuration, 4);
+	int il1Association = extractConfigPararm( configuration, 6);
+	int ul2Association = extractConfigPararm( configuration, 9);
 	// This is a dumb implementation.
 	latencySettings = "1 1 1";
-
+	//int latencyInt = 0;
+	int dl1lat = 0;
+	int il1lat = 0;
+	int ul2lat = 0;
 	//
 	//YOUR CODE ENDS HERE
 	//
+	if (dl1Size == 2048)
+		dl1lat = 1;
+	else if (dl1Size == 4096)
+		dl1lat = 2;
+	else if (dl1Size == 8192)
+		dl1lat = 3;
+	else if (dl1Size == 16384)
+		dl1lat = 4;
+	else if (dl1Size == 32768)
+		dl1lat = 5;
+	else if (dl1Size == 65536)
+		dl1lat = 6;
 
+	if (dl1Association == 2)
+		dl1lat = dl1lat + 1;
+	else if (dl1Association == 4)
+		dl1lat = dl1lat + 2;
+	else if (dl1Association == 8)
+		dl1lat = dl1lat + 3;
+
+
+	if (il1Size == 2048)
+		il1lat = 1;
+	else if (il1Size == 4096)
+		il1lat = 2;
+	else if (il1Size == 8192)
+		il1lat = 3;
+	else if (il1Size == 16384)
+		il1lat = 4;
+	else if (il1Size == 32768)
+		il1lat = 5;
+	else if (il1Size == 65536)
+		il1lat = 6;
+	
+	if (il1Association == 2)
+		il1lat = il1lat + 1;
+	else if (il1Association == 4)
+		il1lat = il1lat + 2;
+	else if (il1Association == 8)
+		il1lat = il1lat + 3;
+
+
+	if (ul2Size == 32768)
+		ul2lat = 5;
+	else if (ul2Size == 65536)
+		ul2lat = 6;
+	else if (ul2Size == 131072)
+		ul2lat = 7;
+	else if (ul2Size == 262144)
+		ul2lat = 8;
+	else if (ul2Size == 524288)
+		ul2lat = 9;
+	else if (ul2Size == 1048576)
+		ul2lat = 10;
+	
+	if (ul2Association == 2)
+		ul2lat = ul2lat + 1;
+	else if (ul2Association == 4)
+		ul2lat = ul2lat + 2;
+	else if (ul2Association == 8)
+		ul2lat = ul2lat + 3;
+	else if (ul2Association == 16)
+		ul2lat = ul2lat + 4;
+
+	latencySettings << dl1lat << " " << il1lat << " " << ul2lat
+
+	latency << log(dllsize)
 	return latencySettings;
 }
 
@@ -63,7 +138,26 @@ std::string generateCacheLatencyParams(string halfBackedConfig) {
 int validateConfiguration(std::string configuration) {
 
 	// FIXME - YOUR CODE HERE
+	int il1block_size = extractConfigPararm(configuration, 2);
+	int ifq = extractConfigPararm(configuration, 0);
+	int ul2block_size = extractConfigPararm(configuration, 8);
+	int ul2Asso = extractConfigPararm(configuration, 9);
+	int il1SetSize = extractConfigPararm(configuration, 5);
+	int dl1SetSize = extractConfigPararm(configuration, 3);
+	int ul2SetSize = extractConfigPararm(configuration, 7);
+	int dl1Asso = extractConfigPararm(configuration, 4);
+	int il1Asso = extractConfigPararm(configuration, 6);
 
+	if (il1block_size < ifq)
+		return 0;
+	else if (ul2block_size < 2 * il1block_size || ul2block_size > 128)
+		return 0;
+	else if (il1block_size * il1SetSize * il1Asso < 2048 || il1block_size * il1SetSize * il1Asso > 65536)
+		return 0;
+	else if (il1block_size * dl1SetSize * dl1Asso < 2048 || il1block_size * dl1SetSize * dl1Asso > 65536)
+		return 0;
+	else if (ul2block_size * ul2SetSize  * ul2Asso < 32768 || ul2block_size * ul2SetSize  * ul2Asso > 1024000)
+		return 0;
 	// The below is a necessary, but insufficient condition for validating a
 	// configuration.
 	return isNumDimConfiguration(configuration);
@@ -100,7 +194,7 @@ std::string generateNextConfigurationProposal(std::string currentconfiguration,
 		// Check if DSE has been completed before and return current
 		// configuration.
 		if(isDSEComplete) {
-			return currentconfiguration;
+			return bestConfig;
 		}
 
 		std::stringstream ss;
@@ -133,7 +227,7 @@ std::string generateNextConfigurationProposal(std::string currentconfiguration,
 		// Fill in remaining independent params with 0.
 		for (int dim = (currentlyExploringDim + 1);
 				dim < (NUM_DIMS - NUM_DIMS_DEPENDENT); ++dim) {
-			ss << "0 ";
+			ss << extractConfigPararm(bestConfig, dim) << " ";
 		}
 
 		//
@@ -150,15 +244,16 @@ std::string generateNextConfigurationProposal(std::string currentconfiguration,
 		nextconfiguration = ss.str();
 
 		// Make sure we start exploring next dimension in next iteration.
+		// update
 		if (currentDimDone) {
 			currentlyExploringDim++;
 			currentDimDone = false;
 		}
 
 		// Signal that DSE is complete after this configuration.
+		//if best config = starting config, done, otherwise starting config = best config, start exploring
 		if (currentlyExploringDim == (NUM_DIMS - NUM_DIMS_DEPENDENT))
 			isDSEComplete = true;
 	}
 	return nextconfiguration;
 }
-
