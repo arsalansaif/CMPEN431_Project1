@@ -245,10 +245,14 @@ std::string generateNextConfigurationProposal(std::string currentconfiguration,
 
 		// Make sure we start exploring next dimension in next iteration.
 		// update
+		int Indexer = 0;
+		std::vector<int> ParamList = {11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 0, 1};
 		if (currentDimDone) {
-			currentlyExploringDim++;
+			currentlyExploringDim = ParamList[Indexer];
+			Indexer++;
 			currentDimDone = false;
-		}
+        }
+
 
 		// Signal that DSE is complete after this configuration.
 		//if best config = starting config, done, otherwise starting config = best config, start exploring
