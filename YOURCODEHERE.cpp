@@ -248,7 +248,7 @@ std::string generateNextConfigurationProposal(std::string currentconfiguration,
 		int Indexer = 0;
 		std::vector<int> ParamList = {11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 0, 1};
 		if (currentDimDone) {
-			currentlyExploringDim = ParamList[Indexer];
+			currentlyExploringDim = 11;
 			Indexer++;
 			currentDimDone = false;
         }
